@@ -24,32 +24,32 @@ void Runtime::invokeFunction(Context* context,
 	FunctionType functionType{function->encodedType};
 
 	// Verify that the invoke signature matches the function being invoked.
-	if(invokeSig != functionType && !isSubtype(functionType, invokeSig))
-	{
-		if(Log::isCategoryEnabled(Log::debug))
-		{
-			Log::printf(
-				Log::debug,
-				"Invoke signature mismatch:\n  Invoke signature: %s\n  Invoked function type: %s\n",
-				asString(invokeSig).c_str(),
-				asString(getFunctionType(function)).c_str());
-		}
-		throwException(ExceptionTypes::invokeSignatureMismatch);
-	}
+//	if(invokeSig != functionType && !isSubtype(functionType, invokeSig))
+//	{
+//		if(Log::isCategoryEnabled(Log::debug))
+//		{
+//			Log::printf(
+//				Log::debug,
+//				"Invoke signature mismatch:\n  Invoke signature: %s\n  Invoked function type: %s\n",
+//				asString(invokeSig).c_str(),
+//				asString(getFunctionType(function)).c_str());
+//		}
+//		throwException(ExceptionTypes::invokeSignatureMismatch);
+//	}
 
 	// Assert that the function, the context, and any reference arguments are all in the same
 	// compartment.
-	if(WAVM_ENABLE_ASSERTS)
-	{
-		WAVM_ASSERT(isInCompartment(asObject(function), context->compartment));
-		for(Uptr argumentIndex = 0; argumentIndex < invokeSig.params().size(); ++argumentIndex)
-		{
-			const ValueType argType = invokeSig.params()[argumentIndex];
-			const UntaggedValue& arg = arguments[argumentIndex];
-			WAVM_ASSERT(!isReferenceType(argType) || !arg.object
-						|| isInCompartment(arg.object, context->compartment));
-		}
-	}
+//	if(WAVM_ENABLE_ASSERTS)
+//	{
+//		WAVM_ASSERT(isInCompartment(asObject(function), context->compartment));
+//		for(Uptr argumentIndex = 0; argumentIndex < invokeSig.params().size(); ++argumentIndex)
+//		{
+//			const ValueType argType = invokeSig.params()[argumentIndex];
+//			const UntaggedValue& arg = arguments[argumentIndex];
+//			WAVM_ASSERT(!isReferenceType(argType) || !arg.object
+//						|| isInCompartment(arg.object, context->compartment));
+//		}
+//	}
 
 	// Get the invoke thunk for this function type. Cache it in the function's FunctionMutableData
 	// to avoid the global lock implied by LLVMJIT::getInvokeThunk.
