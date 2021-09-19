@@ -24,18 +24,18 @@ void Runtime::invokeFunction(Context* context,
 	FunctionType functionType{function->encodedType};
 
 	// Verify that the invoke signature matches the function being invoked.
-//	if(invokeSig != functionType && !isSubtype(functionType, invokeSig))
-//	{
-//		if(Log::isCategoryEnabled(Log::debug))
-//		{
-//			Log::printf(
-//				Log::debug,
-//				"Invoke signature mismatch:\n  Invoke signature: %s\n  Invoked function type: %s\n",
-//				asString(invokeSig).c_str(),
-//				asString(getFunctionType(function)).c_str());
-//		}
-//		throwException(ExceptionTypes::invokeSignatureMismatch);
-//	}
+	if(invokeSig != functionType && !isSubtype(functionType, invokeSig))
+	{
+		if(Log::isCategoryEnabled(Log::debug))
+		{
+			Log::printf(
+				Log::debug,
+				"Invoke signature mismatch:\n  Invoke signature: %s\n  Invoked function type: %s\n",
+				asString(invokeSig).c_str(),
+				asString(getFunctionType(function)).c_str());
+		}
+		throwException(ExceptionTypes::invokeSignatureMismatch);
+	}
 
 	// Assert that the function, the context, and any reference arguments are all in the same
 	// compartment.
