@@ -781,6 +781,75 @@ wasm_module_t* wasm_module_precompiled_new(wasm_engine_t* engine, const char* wa
 		return new wasm_module_t{Runtime::loadPrecompiledModule(irModule, precompiledObjectSection->data)};
 	}
 }
+//wasm_module_t* wasm_module_object_new(wasm_engine_t* engine, const char* wasmBytes, uintptr_t numWASMBytes)
+//{
+//	IR::Module irModule(engine->config.featureSpec);
+//
+//	// Deserialize the module IR from the binary format.
+//	WASM::LoadError loadError;
+//	if(!WASM::loadBinaryModule((const U8*)wasmBytes, numWASMBytes, irModule, &loadError))
+//	{
+//		Log::printf(
+//			Log::error, "Error loading WebAssembly binary file: %s\n", loadError.message.c_str());
+//		return nullptr;
+//	}
+//
+//	compileModule(irModule)
+//
+//	return new wasm_module_t{Runtime::loadPrecompiledModule(irModule, )};
+//}
+char* wasm_module_compile(wasm_engine_t* engine, const char* wasmBytes, uintptr_t numWASMBytes, uintptr_t* outNumBytes)
+{
+	IR::Module irModule(engine->config.featureSpec);
+
+	// Deserialize the module IR from the binary format.
+	WASM::LoadError loadError;
+	if(!WASM::loadBinaryModule((const U8*)wasmBytes, numWASMBytes, irModule, &loadError))
+	{
+		Log::printf(
+			Log::error, "Error loading WebAssembly binary file: %s\n", loadError.message.c_str());
+		return nullptr;
+	}
+
+	// Compile the module to object code.
+	std::vector<U8> objectCode = LLVMJIT::compileModule(irModule, LLVMJIT::getHostTargetSpec());
+
+	// Extract the compiled object code and add it to the IR module as a user section.
+	irModule.customSections.push_back(CustomSection{
+		OrderedSectionID::moduleBeginning, "wavm.precompiled_object", std::move(objectCode)});
+
+	std::vector<U8> compiledBytes = WASM::saveBinaryModule(irModule);
+
+	// Copy output
+	char* returnBuffer = (char*)malloc(compiledBytes.size());
+	memcpy((void*)returnBuffer, (void*)compiledBytes.data(), compiledBytes.size());
+	*outNumBytes = compiledBytes.size();
+	// Caller must free
+	return returnBuffer;
+}
+char* wasm_module_compile_object(wasm_engine_t* engine, const char* wasmBytes, uintptr_t numWASMBytes, uintptr_t* outNumBytes)
+{
+	IR::Module irModule(engine->config.featureSpec);
+
+	// Deserialize the module IR from the binary format.
+	WASM::LoadError loadError;
+	if(!WASM::loadBinaryModule((const U8*)wasmBytes, numWASMBytes, irModule, &loadError))
+	{
+		Log::printf(
+			Log::error, "Error loading WebAssembly binary file: %s\n", loadError.message.c_str());
+		return nullptr;
+	}
+
+	// Compile the module to object code.
+	std::vector<U8> objectCode = LLVMJIT::compileModule(irModule, LLVMJIT::getHostTargetSpec());
+
+	// Copy output
+	char* returnBuffer = (char*)malloc(objectCode.size());
+	memcpy((void*)returnBuffer, (void*)objectCode.data(), objectCode.size());
+	*outNumBytes = objectCode.size();
+	// Caller must free
+	return returnBuffer;
+}
 wasm_module_t* wasm_module_new_text(wasm_engine_t* engine, const char* text, size_t num_text_chars)
 {
 	// wasm_module_new_text requires the input string to be null terminated.
@@ -952,35 +1021,6 @@ size_t wasm_func_result_arity(const wasm_func_t* function)
 	return getFunctionType(function).results().size();
 }
 
-wasm_trap_t* wasm_func_call0(wasm_store_t* store,
-							const wasm_func_t* function,
-							const wasm_val_t args[],
-							wasm_val_t outResults[])
-{
-	Exception* exception = nullptr;
-	catchRuntimeExceptions(
-		[store, function, &args, &outResults]() {
-			FunctionType functionType = getFunctionType((Function*)function);
-			auto wavmArgs
-				= (UntaggedValue*)alloca(functionType.params().size() * sizeof(UntaggedValue));
-			for(Uptr argIndex = 0; argIndex < functionType.params().size(); ++argIndex)
-			{ memcpy(&wavmArgs[argIndex].bytes, &args[argIndex], sizeof(wasm_val_t)); }
-
-			auto wavmResults
-				= (UntaggedValue*)alloca(functionType.results().size() * sizeof(UntaggedValue));
-			invokeFunction(store, function, functionType, wavmArgs, wavmResults);
-
-			for(Uptr resultIndex = 0; resultIndex < functionType.results().size(); ++resultIndex)
-			{
-				memcpy(
-					&outResults[resultIndex], &wavmResults[resultIndex].bytes, sizeof(wasm_val_t));
-			}
-		},
-		[&exception](Exception* caughtException) { exception = caughtException; });
-
-	return exception;
-}
-
 wasm_trap_t* wasm_func_call(wasm_store_t* store,
 							const wasm_func_t* function,
 							const wasm_val_t args[],
@@ -1006,7 +1046,6 @@ wasm_trap_t* wasm_func_call(wasm_store_t* store,
 			}
 		},
 		[&exception](Exception* caughtException) { exception = caughtException; });
-//
 	return exception;
 }
 
