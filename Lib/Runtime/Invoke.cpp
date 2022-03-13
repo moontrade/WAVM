@@ -39,17 +39,17 @@ void Runtime::invokeFunction(Context* context,
 
 	// Assert that the function, the context, and any reference arguments are all in the same
 	// compartment.
-//	if(WAVM_ENABLE_ASSERTS)
-//	{
-//		WAVM_ASSERT(isInCompartment(asObject(function), context->compartment));
-//		for(Uptr argumentIndex = 0; argumentIndex < invokeSig.params().size(); ++argumentIndex)
-//		{
-//			const ValueType argType = invokeSig.params()[argumentIndex];
-//			const UntaggedValue& arg = arguments[argumentIndex];
-//			WAVM_ASSERT(!isReferenceType(argType) || !arg.object
-//						|| isInCompartment(arg.object, context->compartment));
-//		}
-//	}
+	if(WAVM_ENABLE_ASSERTS)
+	{
+		WAVM_ASSERT(isInCompartment(asObject(function), context->compartment));
+		for(Uptr argumentIndex = 0; argumentIndex < invokeSig.params().size(); ++argumentIndex)
+		{
+			const ValueType argType = invokeSig.params()[argumentIndex];
+			const UntaggedValue& arg = arguments[argumentIndex];
+			WAVM_ASSERT(!isReferenceType(argType) || !arg.object
+						|| isInCompartment(arg.object, context->compartment));
+		}
+	}
 
 	// Get the invoke thunk for this function type. Cache it in the function's FunctionMutableData
 	// to avoid the global lock implied by LLVMJIT::getInvokeThunk.
