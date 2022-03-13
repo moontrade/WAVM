@@ -97,8 +97,12 @@ namespace WAVM { namespace Runtime {
 				  "TableRuntimeData isn't the expected size");
 
 	static constexpr Uptr maxMemories = 255;
-	static constexpr Uptr compartmentReservedBytes = Uptr(2) * 1024 * 1024 * 1024;
-	static constexpr Uptr compartmentNonContextBytes = Uptr(2) * 1024 * 1024;
+//	static constexpr Uptr compartmentReservedBytes = Uptr(4) * 1024 * 1024;
+	static constexpr Uptr compartmentReservedBytes = Uptr(1024) * 1024;
+//	static constexpr Uptr compartmentReservedBytes = Uptr(64) * 1024 * 8;
+//	static constexpr Uptr compartmentReservedBytes = Uptr(2) * 1024 * 1024 * 1024;
+//	static constexpr Uptr compartmentNonContextBytes = Uptr(2) * 1024 * 1024;
+	static constexpr Uptr compartmentNonContextBytes = Uptr(1024) * 512;
 	static constexpr Uptr maxTables = (compartmentNonContextBytes - sizeof(Compartment*)
 									   - maxMemories * sizeof(MemoryRuntimeData))
 									  / sizeof(TableRuntimeData);

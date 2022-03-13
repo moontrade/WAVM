@@ -53,6 +53,10 @@ static bool isPageAligned(U8* address)
 U8* Platform::allocateVirtualPages(Uptr numPages)
 {
 	Uptr numBytes = numPages << getBytesPerPageLog2();
+//	fprintf(stderr,
+//			"mmap(0, %" WAVM_PRIuPTR
+//			")\n",
+//			numBytes);
 	void* result = mmap(nullptr, numBytes, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 	if(result == MAP_FAILED)
 	{
@@ -73,6 +77,10 @@ U8* Platform::allocateAlignedVirtualPages(Uptr numPages,
 {
 	const Uptr pageSizeLog2 = getBytesPerPageLog2();
 	const Uptr numBytes = numPages << pageSizeLog2;
+//	fprintf(stderr,
+//			"mmap2(0, %" WAVM_PRIuPTR
+//			")\n",
+//			numBytes);
 	if(alignmentLog2 > pageSizeLog2)
 	{
 		// Call mmap with enough padding added to the size to align the allocation within the

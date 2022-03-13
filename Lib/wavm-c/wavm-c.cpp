@@ -1301,6 +1301,60 @@ wasm_instance_t* wasm_instance_new(wasm_store_t* store,
 	return instance;
 }
 
+// wasm_instance_t
+wasm_instance_t* wasm_instance_new_with_quota(wasm_store_t* store,
+								   	const wasm_module_t* module,
+								   	const wasm_extern_t* const imports[],
+								   	wasm_trap_t** out_trap,
+									int32_t max_table_elems,
+									int32_t max_memory_pages,
+								  	int32_t call_start_function,
+								   	const char* debug_name)
+{
+	const IR::Module& irModule = getModuleIR(module->module);
+
+	if(out_trap) { *out_trap = nullptr; }
+
+	ImportBindings importBindings;
+	for(Uptr importIndex = 0; importIndex < irModule.imports.size(); ++importIndex)
+	{ importBindings.push_back(const_cast<Object*>(imports[importIndex])); }
+
+	if (max_table_elems < 128) {
+		max_table_elems = 128;
+	}
+	if (max_memory_pages < 1) {
+		max_memory_pages = 1;
+	}
+	Instance* instance = nullptr;
+	catchRuntimeExceptions(
+		[store, module, &importBindings, &instance, max_table_elems, max_memory_pages, call_start_function, debug_name]() {
+			auto quota = createResourceQuota();
+			setResourceQuotaMaxTableElems(quota, (Uptr)max_table_elems);
+			setResourceQuotaMaxMemoryPages(quota, (Uptr)max_memory_pages);
+
+			instance = instantiateModule(getCompartment(store),
+										 module->module,
+										 std::move(importBindings),
+										 std::string(debug_name), quota);
+
+			addGCRoot(instance);
+
+			if (call_start_function != 0) {
+				Function* startFunction = getStartFunction(instance);
+				if(startFunction) { invokeFunction(store, startFunction); }
+			}
+		},
+		[&](Runtime::Exception* exception) {
+			if(out_trap) { *out_trap = exception; }
+			else
+			{
+				destroyException(exception);
+			}
+		});
+
+	return instance;
+}
+
 void wasm_instance_delete(wasm_instance_t* instance) { removeGCRoot(instance); }
 
 size_t wasm_instance_num_exports(const wasm_instance_t* instance)
