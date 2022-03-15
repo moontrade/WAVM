@@ -134,11 +134,11 @@ bool Platform::commitVirtualPages(U8* baseVirtualAddress, Uptr numPages, MemoryA
 	WAVM_ERROR_UNLESS(isPageAligned(baseVirtualAddress));
 	int result = mprotect(
 		baseVirtualAddress, numPages << getBytesPerPageLog2(), memoryAccessAsPOSIXFlag(access));
-	fprintf(stderr,
-			"commitVirtualPages -> mprotect(0x%" WAVM_PRIxPTR ", %" WAVM_PRIuPTR ", %u) code: %u\n",
-			reinterpret_cast<Uptr>(baseVirtualAddress),
-			numPages << getBytesPerPageLog2(),
-			memoryAccessAsPOSIXFlag(access), result);
+//	fprintf(stderr,
+//			"commitVirtualPages -> mprotect(0x%" WAVM_PRIxPTR ", %" WAVM_PRIuPTR ", %u) code: %u\n",
+//			reinterpret_cast<Uptr>(baseVirtualAddress),
+//			numPages << getBytesPerPageLog2(),
+//			memoryAccessAsPOSIXFlag(access), result);
 	if(result != 0)
 	{
 		fprintf(stderr,
@@ -150,6 +150,7 @@ bool Platform::commitVirtualPages(U8* baseVirtualAddress, Uptr numPages, MemoryA
 		dumpErrorCallStack(0);
 	}
 	return result == 0;
+//return true;
 }
 
 bool Platform::setVirtualPageAccess(U8* baseVirtualAddress, Uptr numPages, MemoryAccess access)
@@ -157,12 +158,12 @@ bool Platform::setVirtualPageAccess(U8* baseVirtualAddress, Uptr numPages, Memor
 	WAVM_ERROR_UNLESS(isPageAligned(baseVirtualAddress));
 	int result = mprotect(
 		baseVirtualAddress, numPages << getBytesPerPageLog2(), memoryAccessAsPOSIXFlag(access));
-	fprintf(stderr,
-			"setVirtualPageAccess -> mprotect(0x%" WAVM_PRIxPTR ", %" WAVM_PRIuPTR ", %u) code: %u\n",
-			reinterpret_cast<Uptr>(baseVirtualAddress),
-			numPages << getBytesPerPageLog2(),
-			memoryAccessAsPOSIXFlag(access),
-			result);
+//	fprintf(stderr,
+//			"setVirtualPageAccess -> mprotect(0x%" WAVM_PRIxPTR ", %" WAVM_PRIuPTR ", %u) code: %u\n",
+//			reinterpret_cast<Uptr>(baseVirtualAddress),
+//			numPages << getBytesPerPageLog2(),
+//			memoryAccessAsPOSIXFlag(access),
+//			result);
 	if(result != 0)
 	{
 		fprintf(stderr,
@@ -174,6 +175,7 @@ bool Platform::setVirtualPageAccess(U8* baseVirtualAddress, Uptr numPages, Memor
 		dumpErrorCallStack(0);
 	}
 	return result == 0;
+//	return true;
 }
 
 void Platform::decommitVirtualPages(U8* baseVirtualAddress, Uptr numPages)
