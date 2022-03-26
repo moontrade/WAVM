@@ -12,7 +12,7 @@ using namespace WAVM;
 using namespace WAVM::IR;
 using namespace WAVM::Runtime;
 
-Memory* memory = nullptr;
+thread_local Memory* memory = nullptr;
 
 WAVM_DEFINE_INTRINSIC_MODULE(embedder)
 WAVM_DEFINE_INTRINSIC_FUNCTION(embedder, "hello", U32, hello, U32 address, U32 numChars)
@@ -33,7 +33,7 @@ int main(int argc, char** argv)
 	char helloWAST[]
 		= "(module\n"
 		  "  (import \"\" \"hello\" (func $1 (param i32 i32) (result i32)))\n"
-		  "  (memory (export \"memory\") 1)\n"
+		  "  (memory (export \"memory\") 1 4)\n"
 		  "  (global $nextFreeMemoryAddress (mut i32) (i32.const 0))\n"
 		  "  (func (export \"malloc\") (param $numBytes i32) (result i32)\n"
 		  "    (local $address i32)\n"
@@ -79,7 +79,7 @@ int main(int argc, char** argv)
 			memory = getTypedInstanceExport(
 				instance,
 				"memory",
-				MemoryType(false, IndexType::i32, SizeConstraints{1, UINT64_MAX}));
+				MemoryType(false, IndexType::i32, SizeConstraints{1, 4}));
 			WAVM_ASSERT(mallocFunction);
 			WAVM_ASSERT(runFunction);
 			WAVM_ASSERT(memory);

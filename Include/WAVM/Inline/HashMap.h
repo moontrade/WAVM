@@ -24,7 +24,9 @@ namespace WAVM {
 		typedef HashMapPair<Key, Value> Pair;
 
 		bool operator!=(const HashMapIterator& other);
+		bool operator!=(HashMapIterator& other) { return bucket != other.bucket; }
 		bool operator==(const HashMapIterator& other);
+		bool operator==(HashMapIterator& other) { return bucket != other.bucket; }
 		operator bool() const;
 		void operator++();
 
